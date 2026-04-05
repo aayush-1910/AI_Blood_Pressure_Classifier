@@ -1,0 +1,11 @@
+[project]
+name = "bp-classifier"
+version = "1.0.0"
+description = "AI Blood Pressure Classifier"
+requires-python = ">=3.9"
+dependencies = [
+    "flask",
+    "numpy",
+    "scikit-learn",
+    "joblib",
+]
