@@ -66,14 +66,14 @@ with open("templates/index.html", "w", encoding="utf-8") as f:
           <input type="number" name="thalach" placeholder="e.g. 150" required/>
         </div>
         <div class="field">
-          <label>Exercise-Induced Angina <span class="hint">(0/1)</span></label>
+          <label>Chest Pain During Exercise <span class="hint">(0/1)</span></label>
           <select name="exang">
             <option value="0">No (0)</option>
             <option value="1">Yes (1)</option>
           </select>
         </div>
         <div class="field">
-          <label>ST Depression <span class="hint">(oldpeak)</span></label>
+          <label>Heart Stress Score <span class="hint">(0–6)</span></label>
           <input type="number" name="oldpeak" step="0.1" placeholder="e.g. 1.5" required/>
         </div>
       </div>
