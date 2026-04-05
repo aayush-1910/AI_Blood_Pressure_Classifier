@@ -3,6 +3,8 @@ import numpy as np
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from werkzeug.utils import secure_filename
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 # ── Optional OCR imports (graceful fallback if not installed) ─────────────────
 try:
     import pytesseract
@@ -17,23 +19,25 @@ try:
 except ImportError:
     PDF_AVAILABLE = False
 
-app = Flask(__name__)
-app.config["UPLOAD_FOLDER"] = "uploads"
+app = Flask(__name__,
+            template_folder=os.path.join(BASE_DIR, "templates"),
+            static_folder=os.path.join(BASE_DIR, "static"))
+app.config["UPLOAD_FOLDER"] = os.path.join(BASE_DIR, "uploads")
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16 MB
 ALLOWED_EXTENSIONS = {"pdf", "png", "jpg", "jpeg"}
 
-os.makedirs("uploads", exist_ok=True)
+os.makedirs(os.path.join(BASE_DIR, "uploads"), exist_ok=True)
 
 # ── Load trained models & metadata ───────────────────────────────────────────
 def load_assets():
-    with open("models/metadata.json") as f:
+    with open(os.path.join(BASE_DIR, "models", "metadata.json")) as f:
         meta = json.load(f)
-    scaler   = joblib.load("models/scaler.pkl")
-    features = joblib.load("models/features.pkl")
+    scaler   = joblib.load(os.path.join(BASE_DIR, "models", "scaler.pkl"))
+    features = joblib.load(os.path.join(BASE_DIR, "models", "features.pkl"))
     models = {}
     for name in meta["results"]:
         key = name.replace(" ", "_")
-        models[name] = joblib.load(f"models/{key}.pkl")
+        models[name] = joblib.load(os.path.join(BASE_DIR, "models", f"{key}.pkl"))
     return meta, scaler, features, models
 
 try:
