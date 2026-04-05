@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BP Classifier | Clinical Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <header>
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-icon">BP</div>
+        <span>Clinical Decision Support</span>
+      </div>
+      <div style="font-size: var(--text-xs); color: var(--text-secondary);">
+        v2.0.4 (Stable)
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    {% if not models_loaded %}
+    <div
+      style="background: #fffbeb; border: 1px solid #fcd34d; padding: 12px; border-radius: 6px; margin-bottom: 24px; font-size: 13px;">
+      ⚠️ <strong>System Alert</strong>: Prediction models are not initialized. Please run
+      <code>python train_model.py</code>.
+    </div>
+    {% endif %}
+
+    <div class="grid-12">
+      <!-- Main Content Area (8 Cols) -->
+      <div class="col-span-8">
+
+        <div class="section-header">
+          <h1>New Assessment</h1>
+          <div class="nav-segment" style="margin-bottom:0; border-bottom:none;">
+            <button class="nav-link active" onclick="switchMode('manual', this)">Manual Entry</button>
+            <button class="nav-link" onclick="switchMode('upload', this)">Upload Report</button>
+          </div>
+        </div>
+
+        <!-- Manual Entry Form -->
+        <div id="view-manual" class="tab-content active">
+          <form action="/predict" method="POST">
+
+            <fieldset>
+              <legend>Patient Demographics</legend>
+              <div class="grid-12" style="gap: var(--space-4);">
+                <div class="col-span-4 form-group">
+                  <label>Age <span class="hint">(Years)</span></label>
+                  <input type="number" name="age" placeholder="55" min="1" max="120" required />
+                </div>
+                <div class="col-span-4 form-group">
+                  <label>Biological Sex</label>
+                  <select name="sex">
+                    <option value="1">Male</option>
+                    <option value="0">Female</option>
+                  </select>
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Hemodynamics & Vitals</legend>
+              <div class="grid-12" style="gap: var(--space-4);">
+                <div class="col-span-4 form-group">
+                  <label>Systolic BP <span class="hint">(mmHg)</span></label>
+                  <input type="number" name="trestbps" placeholder="120" required />
+                </div>
+                <div class="col-span-4 form-group">
+                  <label>Total Cholesterol <span class="hint">(mg/dL)</span></label>
+                  <input type="number" name="chol" placeholder="200" required />
+                </div>
+                <div class="col-span-4 form-group">
+                  <label>Max Heart Rate <span class="hint">(bpm)</span></label>
+                  <input type="number" name="thalach" placeholder="72" required />
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Clinical Risk Factors</legend>
+              <div class="grid-12" style="gap: var(--space-4);">
+                <div class="col-span-4 form-group">
+                  <label>Fasting Glucose > 120</label>
+                  <select name="fbs">
+                    <option value="0">Negative (0)</option>
+                    <option value="1">Positive (1)</option>
+                  </select>
+                </div>
+                <div class="col-span-4 form-group">
+                  <label>Chest Pain During Exercise</label>
+                  <select name="exang">
+                    <option value="0">No (0)</option>
+                    <option value="1">Yes (1)</option>
+                  </select>
+                </div>
+                <div class="col-span-4 form-group">
+                  <label>Heart Stress Score <span class="hint">(0–6)</span></label>
+                  <input type="number" name="oldpeak" step="0.1" placeholder="0.0" required />
+                </div>
+              </div>
+            </fieldset>
+
+            <div
+              style="margin-top: var(--space-6); padding-top: var(--space-4); border-top: 1px solid var(--border-subtle);">
+              <button type="submit" class="btn-primary" {% if not models_loaded %}disabled{% endif %}>
+                Run Classification Protocol
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Upload View -->
+        <div id="view-upload" class="tab-content">
+          <form action="/upload" method="POST" enctype="multipart/form-data">
+            <div class="upload-drop" onclick="document.getElementById('fileInput').click()">
+              <div style="font-size: 24px; color: var(--text-tertiary); margin-bottom: 8px;">📄</div>
+              <h3 style="margin-bottom: 4px; color: var(--text-primary);">Upload Clinical Record</h3>
+              <p class="text-sec" style="font-size: var(--text-xs);">PDF, PNG, JPG (Max 16MB)</p>
+              <input id="fileInput" type="file" name="report" accept=".pdf,.png,.jpg,.jpeg" hidden
+                onchange="document.getElementById('fname').textContent = this.files[0].name" />
+              <div id="fname" style="margin-top: 12px; font-weight: 500; color: var(--brand-primary);"></div>
+            </div>
+            <div style="margin-top: 16px;">
+              <button type="submit" class="btn-primary" {% if not models_loaded %}disabled{% endif %}>
+                Process Document
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Sidebar (4 Cols) -->
+      <div class="col-span-4">
+        <div
+          style="background: var(--bg-surface); padding: var(--space-4); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+          <h3 style="margin-bottom: var(--space-3);">Input Guidelines</h3>
+          <p class="text-sec" style="font-size: var(--text-xs); margin-bottom: var(--space-3);">
+            Ensure all hemodynamic values are taken at rest. Heart stress score should be measured relative to rest.
+          </p>
+          <ul style="padding-left: 16px; font-size: var(--text-xs); color: var(--text-secondary); line-height: 1.6;">
+            <li>Systolic BP: 90 - 200 mmHg</li>
+            <li>Cholesterol: Total serum</li>
+            <li>Heart Stress Score: How much the heart dips under exercise (0–6)</li>
+          </ul>
+        </div>
+
+        <div style="margin-top: var(--space-4); padding: var(--space-4);">
+          <h3 style="margin-bottom: var(--space-2);">System Status</h3>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: var(--text-xs);">
+            <span style="width: 8px; height: 8px; background: var(--status-success); border-radius: 50%;"></span>
+            <span class="text-sec">Inference Engine Ready</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="container footer-text">
+      &copy; 2026 MedTech Solutions Inc. • For Investigational Use Only • HIPAA Compliant Layout
+    </div>
+  </footer>
+
+  <script>
+    function switchMode(mode, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+      document.getElementById('view-' + mode).classList.add('active');
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+
+</html>

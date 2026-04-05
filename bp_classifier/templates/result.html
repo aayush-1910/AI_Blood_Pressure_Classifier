@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analysis Results | BP Classifier</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <header>
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="brand-icon">BP</div>
+        <span>Clinical Decision Support</span>
+      </div>
+      <div style="font-size: var(--text-xs); color: var(--text-secondary);">
+        Assessment ID: #{{ range(1000, 9999) | random }}
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <div style="margin-bottom: var(--space-4);">
+      <a href="/" class="btn-secondary" style="height: 32px; padding: 0 12px; font-size: 12px;">
+        &larr; Return to Dashboard
+      </a>
+    </div>
+
+    <div class="grid-12">
+
+      <!-- Left Column: Results (8 Cols) -->
+      <div class="col-span-8">
+
+        <!-- Primary Status Banner -->
+        <div class="result-header" style="border-left-color: {{ final_color }};">
+          <div class="stat-group">
+            <span class="stat-label">Classification Result</span>
+            <span class="stat-value" style="color: {{ final_color }}">{{ final_label }}</span>
+          </div>
+          <div class="stat-group" style="text-align: right;">
+            <span class="stat-label">Model Consensus</span>
+            <span style="font-size: var(--text-base); font-weight: var(--fw-medium);">
+              {{ predictions|length }} Models
+            </span>
+          </div>
+        </div>
+
+        <!-- Clinical Parameters Grid -->
+        <div
+          style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-6);">
+          <div
+            style="padding: var(--space-3) var(--space-4); background: var(--bg-subtle); border-bottom: 1px solid var(--border-subtle);">
+            <h3>Input Parameters</h3>
+          </div>
+          <div class="grid-12" style="padding: var(--space-4); gap: var(--space-4);">
+            {% for feat, val in params.items() %}
+            <div class="col-span-3">
+              <div class="stat-label" style="font-size: 10px;">{{ feat }}</div>
+              <div style="font-weight: 500; font-size: 13px;">{{ val }}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <!-- Model Breakdown Table -->
+        <div
+          style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden;">
+          <div style="padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle);">
+            <h3>Inference Details</h3>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Model Architecture</th>
+                <th>Predicted Class</th>
+                <th>Confidence</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for model_name, pred in predictions.items() %}
+              <tr>
+                <td>{{ model_name }}</td>
+                <td style="font-weight: 500; color: {{ bp_colors.get(pred.label, 'inherit') }}">{{ pred.label }}</td>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <div style="width: 64px; height: 4px; background: var(--border-subtle); border-radius: 2px;">
+                      <div
+                        style="width: {{ pred.confidence }}%; height: 100%; background: var(--border-strong); border-radius: 2px;">
+                      </div>
+                    </div>
+                    {{ pred.confidence }}%
+                  </div>
+                </td>
+                <td><span class="badge badge-neutral">Logit OK</span></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Reference (4 Cols) -->
+      <div class="col-span-4">
+
+        <div
+          style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden; margin-bottom: var(--space-6);">
+          <div style="padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle);">
+            <h3>JNC-8 Reference Standards</h3>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Classification</th>
+                <th>Criteria</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for label, color in bp_colors.items() %}
+              <tr {% if label==final_label %}style="background: #f0fdfa;" {% endif %}>
+                <td>
+                  <span
+                    style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: {{ color }}; margin-right: 6px;"></span>
+                  {{ label }}
+                  {% if label == final_label %}<br><span class="badge"
+                    style="margin-top:4px; font-size:9px; border: 1px solid {{color}}; color: {{color}}; background:transparent;">CURRENT</span>{%
+                  endif %}
+                </td>
+                <td style="font-size: 11px; white-space: nowrap;">
+                  {% if label == "Normal" %}< 120 {% elif label=="Elevated" %}120-129 {% elif
+                    label=="Hypertension Stage 1" %}130-139 {% elif label=="Hypertension Stage 2" %}140-179 {% else %}≥
+                    180{% endif %} </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div
+          style="background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); overflow: hidden;">
+          <div style="padding: var(--space-3) var(--space-4); border-bottom: 1px solid var(--border-subtle);">
+            <h3>Validation Metrics</h3>
+          </div>
+          <img src="/static/plots/model_comparison.png"
+            style="width: 100%; display: block; border-bottom: 1px solid var(--border-subtle);" alt="Model metrics" />
+          <div
+            style="padding: var(--space-3); font-size: var(--text-xs); color: var(--text-tertiary); text-align: center;">
+            Performance on Test Split (n=61)
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="container footer-text">
+      Generated via Clinical Support System • {{ range(100, 9000) | random }}ms interference time
+    </div>
+  </footer>
+
+</body>
+
+</html>
