@@ -1,0 +1,37 @@
+{
+  "best_model": "Decision Tree",
+  "best_model_key": "Decision_Tree",
+  "classes": [
+    "Hypertension Stage 2",
+    "Elevated",
+    "Hypertension Stage 1",
+    "Normal",
+    "Hypertensive Crisis"
+  ],
+  "results": {
+    "Logistic Regression": {
+      "accuracy": 90.0,
+      "precision": 89.0,
+      "recall": 90.0,
+      "f1_score": 89.37
+    },
+    "Decision Tree": {
+      "accuracy": 100.0,
+      "precision": 100.0,
+      "recall": 100.0,
+      "f1_score": 100.0
+    },
+    "Random Forest": {
+      "accuracy": 96.67,
+      "precision": 95.19,
+      "recall": 96.67,
+      "f1_score": 95.85
+    },
+    "Support Vector Machine": {
+      "accuracy": 78.33,
+      "precision": 79.74,
+      "recall": 78.33,
+      "f1_score": 78.52
+    }
+  }
+}
